@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rahulflix</title>
+    <style>
+        /* Basic styles for the whole page */
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #141414; /* Dark background like Netflix */
+            color: #fff; /* White text color */
+            overflow-x: hidden; /* Prevents horizontal scrollbar */
+        }
+
+        /* Splash Screen - The first screen you see */
+        #splash-screen {
+            display: flex;
+            flex-direction: column; /* Align items vertically */
+            justify-content: center; /* Center content vertically */
+            align-items: center; /* Center content horizontally */
+            height: 100vh; /* Full viewport height */
+            background-color: #000; /* Black background */
+            position: fixed; /* Stays in place */
+            top: 0;
+            left: 0;
+            width: 100%; /* Full width */
+            z-index: 1000; /* Stays on top of other elements */
+            transition: opacity 1s ease-out; /* Smooth fade-out effect */
+        }
+
+        #splash-screen.hidden {
+            opacity: 0; /* Makes the splash screen completely transparent */
+            pointer-events: none; /* Makes it unclickable */
+        }
+
+        /* Styling for the main "RAHULFLIX" logo text */
+        .logo {
+            font-size: 5em; /* Large text size */
+            font-weight: bold;
+            color: #e50914; /* Netflix red color */
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7); /* Adds a subtle shadow */
+            margin-bottom: 20px;
+            letter-spacing: -2px; /* Slightly tighter letter spacing for the large logo */
+            animation: bounceIn 1s ease-out; /* Animation for the logo */
+        }
+
+        /* Netflix-like logo load animation */
+        @keyframes bounceIn {
+            0%, 20%, 40%, 60%, 80%, 100% {
+                transition-timing-function: cubic-bezier(0.215, 0.610, 0.355, 1.000);
+            }
+            0% {
+                opacity: 0;
+                transform: scale3d(.3, .3, .3);
+            }
+            20% {
+                transform: scale3d(1.1, 1.1, 1.1);
+            }
+            40% {
+                transform: scale3d(.9, .9, .9);
+            }
+            60% {
+                opacity: 1;
+                transform: scale3d(1.03, 1.03, 1.03);
+            }
+            80% {
+                transform: scale3d(.97, .97, .97);
+            }
+            100% {
+                opacity: 1;
+                transform: scale3d(1, 1, 1);
+            }
+        }
+
+        /* Smaller logo style for the header */
+        .logo.small-logo {
+            font-size: 2em;
+            margin: 0;
+            letter-spacing: normal; /* Resets letter spacing */
+            animation: none; /* No animation for small logo */
+        }
+
+        /* Loading Spinner animation (Netflix style) */
+        .loading-spinner {
+            border: 5px solid rgba(255, 255, 255, 0.3); /* Light grey border */
+            border-top: 5px solid #e50914; /* Red border on top to create spinning effect */
+            border-radius: 50%; /* Makes it circular */
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite; /* Animation for spinning */
+            margin-top: 20px;
+        }
+
+        /* Keyframes for the spinning animation */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Get Started Page - Appears after splash screen */
+        #get-started-page {
+            display: flex; /* Flexbox for centering content */
+            flex-direction: column; /* Stack content vertically */
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            /* Using a generic placeholder image for the background for reliability */
+            background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('background.jpg'); /* Changed to local image */
+            background-size: cover; /* Cover the entire area */
+            background-position: center; /* Center the background image */
+            text-align: center;
+            padding: 20px;
+            color: #fff; /* White text for readability */
+        }
+
+        .get-started-content {
+            max-width: 800px;
+            padding: 40px;
+            background-color: rgba(0, 0, 0, 0.8); /* Semi-transparent black background */
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5); /* Soft shadow */
+        }
+
+        #get-started-page .logo {
+            font-size: 4em; /* Slightly smaller logo than splash screen */
+            margin-bottom: 30px;
+            animation: none; /* No animation for this logo */
+        }
+
+        #get-started-page h2 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+
+        #get-started-page p {
+            font-size: 1.2em;
+            margin-bottom: 30px;
+            color: #ccc; /* Lighter grey for paragraph text */
+        }
+
+        #get-started-btn {
+            background-color: #e50914; /* Netflix red */
+            color: #fff;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.5em;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease; /* Smooth hover effect */
+        }
+
+        #get-started-btn:hover {
+            background-color: #f40612; /* Slightly darker red on hover */
+        }
+
+        /* Main Content (Homepage) - Hidden initially */
+        #main-content {
+            display: none; /* Initially hidden, shown by JavaScript */
+        }
+
+        /* Header section with navigation */
+        header {
+            background-color: #1a1a1a; /* Darker grey background */
+            padding: 20px 50px;
+            display: flex;
+            justify-content: space-between; /* Space out elements */
+            align-items: center; /* Vertically align items */
+            position: sticky; /* Stays at the top when scrolling */
+            top: 0;
+            z-index: 999;
+        }
+
+        nav {
+            display: flex;
+            width: 100%;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .left-nav {
+            display: flex;
+            align-items: center;
+        }
+
+        .left-nav ul {
+            list-style: none; /* Removes bullet points */
+            margin: 0;
+            padding: 0;
+            display: flex; /* Arranges list items horizontally */
+            margin-left: 30px;
+        }
+
+        .left-nav ul li {
+            margin-right: 20px;
+        }
+
+        .left-nav ul li a {
+            color: #fff;
+            text-decoration: none; /* Removes underline */
+            font-weight: bold;
+            transition: color 0.3s ease;
+        }
+
+        .left-nav ul li a:hover {
+            color: #e50914; /* Red on hover */
+        }
+
+        /* Search input specific styles */
+        .right-nav input {
+            padding: 8px 15px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            background-color: #333; /* Dark background for input */
+            color: #fff;
+            margin-right: 10px;
+            width: 150px; /* Default width */
+        }
+
+        .right-nav button {
+            background-color: #e50914;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+
+        .right-nav button:hover {
+            background-color: #f40612;
+        }
+
+        /* Hero Section - The large featured movie/show at the top */
+        .hero-section {
+            position: relative;
+            width: 100%;
+            height: 600px; /* Fixed height */
+            overflow: hidden;
+            margin-bottom: 30px;
+            /* Using a local image for the background */
+            background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('hero.jpg'); /* Changed to local image */
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            display: flex; /* Use flex to center text content */
+            align-items: flex-end; /* Align text to the bottom */
+            justify-content: flex-start; /* Align text to the left */
+            cursor: pointer; /* Indicate it's clickable */
+        }
+
+        .hero-text {
+            color: #fff;
+            max-width: 600px;
+            padding: 0 50px 80px; /* Padding for bottom and left */
+            z-index: 2; /* Ensures text is above background */
+        }
+
+        .hero-text h2 {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .hero-text p {
+            font-size: 1.2em;
+            margin-bottom: 20px;
+        }
+
+        .play-button, .info-button {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            margin-right: 15px;
+            transition: background-color 0.3s ease;
+            z-index: 2; /* Ensure buttons are clickable */
+        }
+
+        .play-button {
+            background-color: #fff;
+            color: #000;
+        }
+
+        .play-button:hover {
+            background-color: rgba(255, 255, 255, 0.8);
+        }
+
+        .info-button {
+            background-color: rgba(109, 109, 110, 0.7); /* Semi-transparent grey */
+            color: #fff;
+        }
+
+        .info-button:hover {
+            background-color: rgba(109, 109, 110, 0.5);
+        }
+
+        /* Content Rows - For displaying movie/show thumbnails */
+        .content-row {
+            margin-bottom: 40px;
+            padding: 0 50px;
+        }
+
+        .content-row h2 {
+            font-size: 1.8em;
+            margin-bottom: 20px;
+        }
+
+        .thumbnails {
+            display: flex; /* Arranges thumbnails horizontally */
+            overflow-x: auto; /* Enables horizontal scrolling if content overflows */
+            padding-bottom: 15px; /* Space for the scrollbar */
+        }
+
+        /* Custom scrollbar styling for webkit browsers */
+        .thumbnails::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .thumbnails::-webkit-scrollbar-track {
+            background: #333;
+            border-radius: 10px;
+        }
+
+        .thumbnails::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+
+        .thumbnails::-webkit-scrollbar-thumb:hover {
+            background: #e50914; /* Red on hover */
+        }
+
+        .thumbnails img {
+            width: 200px; /* Fixed width for each thumbnail */
+            height: 120px; /* Fixed height */
+            object-fit: cover;
+            margin-right: 10px;
+            border-radius: 5px;
+            transition: transform 0.2s ease-in-out; /* Smooth scale effect on hover */
+            cursor: pointer;
+        }
+
+        .thumbnails img:hover {
+            transform: scale(1.05); /* Slightly enlarges the thumbnail on hover */
+        }
+
+        /* Info Section - About Rahulflix and your roots */
+        .info-section {
+            padding: 50px;
+            text-align: center;
+            background-color: #1a1a1a;
+            margin-top: 50px;
+        }
+
+        .info-section h2 {
+            font-size: 2.2em;
+            margin-bottom: 40px;
+            color: #e50914; /* Netflix red */
+        }
+
+        .info-cards {
+            display: flex;
+            flex-wrap: wrap; /* Allows cards to wrap to the next line on smaller screens */
+            justify-content: center; /* Centers cards if there's space */
+            gap: 30px; /* Space between cards */
+        }
+
+        .card {
+            background-color: #282828; /* Darker grey background for cards */
+            border-radius: 10px;
+            padding: 30px;
+            max-width: 350px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+            text-align: left;
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-10px); /* Lifts the card slightly on hover */
+        }
+
+        .card h3 {
+            color: #e50914; /* Red for card titles */
+            font-size: 1.8em;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+
+        .card p {
+            font-size: 1.1em;
+            line-height: 1.6;
+            color: #ccc;
+        }
+
+        /* Footer Section */
+        footer {
+            background-color: #1a1a1a;
+            padding: 30px 50px;
+            text-align: center;
+            font-size: 0.9em;
+            color: #aaa; /* Lighter grey for footer text */
+            margin-top: 50px;
+        }
+
+        footer p {
+            margin: 5px 0;
+        }
+
+        /* Responsive Design using Media Queries */
+
+        /* For screens smaller than 768px (e.g., mobile phones) */
+        @media (max-width: 768px) {
+            .logo {
+                font-size: 3em; /* Smaller logo on mobile */
+            }
+            #get-started-page .logo {
+                font-size: 3em;
+            }
+            #get-started-page h2 {
+                font-size: 1.8em;
+            }
+            #get-started-page p {
+                font-size: 1em;
+            }
+            #get-started-btn {
+                padding: 12px 30px;
+                font-size: 1.2em;
+            }
+            header {
+                padding: 15px 20px; /* Reduced padding for header */
+            }
+            .left-nav ul {
+                display: none; /* Hide navigation links on small screens */
+            }
+            .right-nav input {
+                width: 100%; /* Make search input full width */
+                margin-bottom: 10px; /* Add space below input */
+            }
+            .right-nav button {
+                width: 100%; /* Make button full width */
+            }
+            .hero-section {
+                height: 400px; /* Smaller hero section on mobile */
+            }
+            .hero-text {
+                padding: 0 20px 30px; /* Adjust padding for mobile */
+                max-width: 90%; /* Adjust text width */
+            }
+            .hero-text h2 {
+                font-size: 2em;
+            }
+            .hero-text p {
+                font-size: 0.9em;
+            }
+            .play-button, .info-button {
+                padding: 8px 15px;
+                font-size: 0.9em;
+                margin-right: 10px;
+            }
+            .content-row {
+                padding: 0 20px; /* Reduced padding for content rows */
+            }
+            .content-row h2 {
+                font-size: 1.5em;
+            }
+            .thumbnails img {
+                width: 150px; /* Smaller thumbnails on mobile */
+                height: 90px;
+            }
+            .info-section {
+                padding: 30px 20px;
+            }
+            .info-section h2 {
+                font-size: 1.8em;
+            }
+            .info-cards {
+                flex-direction: column; /* Stack cards vertically */
+                align-items: center; /* Center stacked cards */
+            }
+            .card {
+                max-width: 90%; /* Cards take full width on mobile */
+                margin: 0 auto; /* Center cards */
+            }
+        }
+
+        /* For screens smaller than 480px (e.g., very small phones) */
+        @media (max-width: 480px) {
+            .logo {
+                font-size: 2.5em;
+            }
+            #get-started-page .logo {
+                font-size: 2.5em;
+            }
+            #get-started-page h2 {
+                font-size: 1.5em;
+            }
+            #get-started-page p {
+                display: none; /* Hide paragraph on very small screens */
+            }
+            #get-started-btn {
+                font-size: 1em;
+                padding: 10px 25px;
+            }
+            header {
+                flex-direction: column; /* Stack header items vertically */
+                align-items: flex-start;
+            }
+            .right-nav {
+                width: 100%;
+                justify-content: space-between;
+                margin-top: 10px;
+            }
+            .hero-section {
+                height: 250px; /* Even smaller hero section */
+            }
+            .hero-text h2 {
+                font-size: 1.2em;
+            }
+            .play-button, .info-button {
+                font-size: 0.8em;
+                padding: 6px 10px;
+            }
+            .content-row h2 {
+                font-size: 1.2em;
+            }
+            .thumbnails img {
+                width: 120px; /* Even smaller thumbnails */
+                height: 70px;
+            }
+            .info-section h2 {
+                font-size: 1.5em;
+            }
+            .card {
+                padding: 20px;
+            }
+            .card h3 {
+                font-size: 1.5em;
+            }
+            .card p {
+                font-size: 0.9em;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="splash-screen">
+        <h1 class="logo">RAHULFLIX</h1>
+        <div class="loading-spinner"></div>
+    </div>
+
+    <div id="get-started-page" style="display: none;">
+        <div class="get-started-content">
+            <h1 class="logo">RAHULFLIX</h1>
+            <h2>Unlimited entertainment, one low price.</h2>
+            <p>All of Rahulflix, starting at just ₹149.</p>
+            <button id="get-started-btn">Get Started</button>
+        </div>
+    </div>
+
+    <div id="main-content" style="display: none;">
+        <header>
+            <nav>
+                <div class="left-nav">
+                    <h1 class="logo small-logo">RAHULFLIX</h1>
+                    <ul>
+                        <li><a href="#">Home</a></li>
+                        <li><a href="#">TV Programmes</a></li>
+                        <li><a href="#">Films</a></li>
+                        <li><a href="#">Originals</a></li>
+                        <li><a href="#">Recently Added</a></li>
+                        <li><a href="#">My List</a></li>
+                    </ul>
+                </div>
+                <div class="right-nav">
+                    <input type="text" id="searchInput" placeholder="Search...">
+                    <button id="signInButton">Sign In</button>
+                </div>
+            </nav>
+        </header>
+
+        <a href="full-image.html?image=hero.jpg" class="hero-section">
+            <div class="hero-text">
+                <h2>Welcome to Rahulflix!</h2>
+                <p>Discover unlimited entertainment, tailored just for you.</p>
+                <button class="play-button" id="heroPlayButton">Play</button>
+                <button class="info-button">More Info</button>
+            </div>
+        </a>
+
+        <section class="content-row">
+            <h2>Trending Now</h2>
+            <div class="thumbnails">
+                <a href="full-image.html?image=movie1.jpg"><img src="movie1.jpg" alt="Movie 1"></a>
+                <a href="full-image.html?image=movie2.jpg"><img src="movie2.jpg" alt="Movie 2"></a>
+                <a href="full-image.html?image=movie3.jpg"><img src="movie3.jpg" alt="Movie 3"></a>
+                <a href="full-image.html?image=movie4.jpg"><img src="movie4.jpg" alt="Movie 4"></a>
+                <a href="full-image.html?image=movie5.jpg"><img src="movie5.jpg" alt="Movie 5"></a>
+            </div>
+        </section>
+
+        <section class="content-row">
+            <h2>Crime Films</h2>
+            <div class="thumbnails">
+                <a href="full-image.html?image=crime1.jpg"><img src="crime1.jpg" alt="Crime 1"></a>
+                <a href="full-image.html?image=crime2.jpg"><img src="crime2.jpg" alt="Crime 2"></a>
+                <a href="full-image.html?image=crime3.jpg"><img src="crime3.jpg" alt="Crime 3"></a>
+                <a href="full-image.html?image=crime4.jpg"><img src="crime4.jpg" alt="Crime 4"></a>
+                <a href="full-image.html?image=crime5.jpg"><img src="crime5.jpg" alt="Crime 5"></a>
+            </div>
+        </section>
+        
+        <section class="info-section">
+            <h2>About Rahulflix & My Roots</h2>
+            <div class="info-cards">
+                <div class="card">
+                    <h3>Nalanda, Bihar</h3>
+                    <p>Rahulflix proudly hails from Nalanda, a historic district in Bihar, India. Known for its ancient learning center, Nalanda University, it's a place rich in culture and history.</p>
+                </div>
+                <div class="card">
+                    <h3>Rajgir, Bihar</h3>
+                    <p>Close to Nalanda, Rajgir is another significant historical and religious site in Bihar. Its serene landscapes and historical importance inspire us.</p>
+                </div>
+                <div class="card">
+                    <h3>About Rahul</h3>
+                    <p>I'm Rahul, a 19-year-old from a humble family in Bihar. My passion lies in web development, aiming to create platforms like Google. I also enjoy dancing, music, bodybuilding, and constantly learning new things. I dream of helping others and building something great together.</p>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <p>&copy; 2025 Rahulflix. All rights reserved.</p>
+            <p>Made with passion by Rahul from Bihar.</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const splashScreen = document.getElementById('splash-screen');
+            const getStartedPage = document.getElementById('get-started-page');
+            const mainContent = document.getElementById('main-content');
+            const getStartedBtn = document.getElementById('get-started-btn');
+            const heroPlayButton = document.getElementById('heroPlayButton');
+            const searchInput = document.getElementById('searchInput');
+            const signInButton = document.getElementById('signInButton');
+
+            // Step 1: Display the Splash Screen for 3 seconds
+            setTimeout(() => {
+                splashScreen.classList.add('hidden'); // Add 'hidden' class to fade out the splash screen
+                // After the fade-out transition (1 second), hide the splash screen completely and show the Get Started page
+                setTimeout(() => {
+                    splashScreen.style.display = 'none'; // Hide splash after fade
+                    getStartedPage.style.display = 'flex'; // Show Get Started page
+                }, 1000); // This duration should match the CSS transition duration for opacity
+            }, 3000); // The splash screen will be visible for 3 seconds
+
+            // Step 2: Handle the "Get Started" Button Click
+            getStartedBtn.addEventListener('click', () => {
+                getStartedPage.style.display = 'none'; // Hide the Get Started page
+                mainContent.style.display = 'block'; // Show the Main Content (Homepage)
+                // Smoothly scroll to the top of the page after showing the main content
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+
+            // If you want to keep the "Play" button but don't have a video,
+            // you can make it do something else, like show an alert:
+            if (heroPlayButton) {
+                heroPlayButton.addEventListener('click', (event) => {
+                    event.stopPropagation(); // Prevent the parent link from being clicked
+                    alert('Play button clicked! In a real app, this would start a movie/show.');
+                });
+            }
+
+            // Optional: More Info button functionality
+            const infoButtons = document.querySelectorAll('.info-button');
+            infoButtons.forEach(button => {
+                button.addEventListener('click', (event) => {
+                    event.stopPropagation(); // Prevent the parent link from being clicked
+                    alert('More Info button clicked! This would show details about the content.');
+                });
+            });
+
+
+            // Step 3: Basic Search Functionality
+            if (searchInput) {
+                searchInput.addEventListener('keypress', function(event) {
+                    // Check if the Enter key was pressed
+                    if (event.key === 'Enter') {
+                        const searchTerm = searchInput.value.trim(); // Get and trim the input value
+                        if (searchTerm) {
+                            alert('Searching for: ' + searchTerm);
+                            // In a real application, you would send this 'searchTerm' to a server
+                            // and display results here.
+                            searchInput.value = ''; // Clear the input field
+                        } else {
+                            alert('Please enter a search term.');
+                        }
+                    }
+                });
+            }
+
+            // Optional: Basic Sign In button functionality
+            if (signInButton) {
+                signInButton.addEventListener('click', () => {
+                    alert('Sign In button clicked! This would typically lead to a login page.');
+                });
+            }
+        });
+    </script>
+</body>
+</html>
